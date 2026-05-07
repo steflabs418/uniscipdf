@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unisci PDF</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #111827;
+      font-size: 16px;
+      background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.35), transparent 32%),
+        radial-gradient(circle at top right, rgba(236, 72, 153, 0.32), transparent 30%),
+        linear-gradient(135deg, #0f172a 0%, #111827 45%, #1e1b4b 100%);
+    }
+
+    .page-wrapper {
+      width: 100%;
+      min-height: 100vh;
+      padding: 22px;
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-align: center;
+          -ms-flex-align: center;
+              align-items: center;
+      -webkit-box-pack: center;
+          -ms-flex-pack: center;
+              justify-content: center;
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: 940px;
+      margin: 24px auto;
+      padding: 34px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 28px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    .container:before {
+      content: "";
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.22), rgba(236, 72, 153, 0.22));
+      z-index: 0;
+    }
+
+    .container > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: 46px;
+      line-height: 1.03;
+      letter-spacing: -1.4px;
+      color: #0f172a;
+    }
+
+    h1:after {
+      content: "";
+      display: block;
+      width: 86px;
+      height: 6px;
+      margin-top: 16px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #2563eb, #ec4899, #f97316);
+    }
+
+    p {
+      max-width: 720px;
+      line-height: 1.6;
+      color: #4b5563;
+      margin-top: 0;
+      font-size: 17px;
+    }
+
+    .privacy-highlight {
+      display: inline-flex;
+      -webkit-box-align: center;
+          -ms-flex-align: center;
+              align-items: center;
+      gap: 8px;
+      margin: 0 0 0;
+      padding: 11px 15px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #dcfce7, #dbeafe);
+      color: #065f46;
+      font-weight: 700;
+      line-height: 1.4;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.13);
+    }
+
+    .privacy-highlight:before {
+      content: "✓";
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: -webkit-inline-box;
+      display: -ms-inline-flexbox;
+      display: inline-flex;
+      -webkit-box-align: center;
+          -ms-flex-align: center;
+              align-items: center;
+      -webkit-box-pack: center;
+          -ms-flex-pack: center;
+              justify-content: center;
+      background: #10b981;
+      color: #fff;
+      font-size: 14px;
+      -webkit-box-flex: 0;
+          -ms-flex: 0 0 auto;
+              flex: 0 0 auto;
+    }
+
+    .upload-box {
+      margin-top: 28px;
+      padding: 34px 24px;
+      border: 2px dashed rgba(37, 99, 235, 0.45);
+      border-radius: 24px;
+      text-align: center;
+      background:
+        linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(236, 72, 153, 0.08)),
+        #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75), 0 18px 45px rgba(15, 23, 42, 0.08);
+    }
+
+    .upload-box strong {
+      display: block;
+      font-size: 20px;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .upload-box strong:before {
+      content: "📄";
+      display: block;
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+
+    input[type="file"] {
+      display: block;
+      width: 100%;
+      max-width: 460px;
+      margin: 16px auto 0;
+      padding: 12px;
+      font-size: 15px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #d1d5db;
+    }
+
+    .file-input-label {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #4b5563;
+      word-break: break-word;
+      font-weight: 600;
+    }
+
+    .pdf-list {
+      margin-top: 30px;
+    }
+
+    .pdf-item {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-align: center;
+          -ms-flex-align: center;
+              align-items: center;
+      -webkit-box-pack: justify;
+          -ms-flex-pack: justify;
+              justify-content: space-between;
+      gap: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+    }
+
+    .pdf-info {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-align: center;
+          -ms-flex-align: center;
+              align-items: center;
+      gap: 12px;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .position {
+      -webkit-box-flex: 0;
+          -ms-flex: 0 0 auto;
+              flex: 0 0 auto;
+      min-width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: #fff;
+      display: -webkit-inline-box;
+      display: -ms-inline-flexbox;
+      display: inline-flex;
+      -webkit-box-align: center;
+          -ms-flex-align: center;
+              align-items: center;
+      -webkit-box-pack: center;
+          -ms-flex-pack: center;
+              justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.28);
+    }
+
+    .file-details {
+      min-width: 0;
+    }
+
+    .file-name {
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 420px;
+      color: #111827;
+    }
+
+    .file-size {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    .actions {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-wrap: wrap;
+          flex-wrap: wrap;
+      gap: 7px;
+      -webkit-box-pack: end;
+          -ms-flex-pack: end;
+              justify-content: flex-end;
+      -webkit-box-flex: 0;
+          -ms-flex: 0 0 auto;
+              flex: 0 0 auto;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 13px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.2;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.2s, opacity 0.2s;
+      -webkit-appearance: none;
+         -moz-appearance: none;
+              appearance: none;
+      touch-action: manipulation;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #eef2ff;
+      color: #3730a3;
+      box-shadow: 0 8px 16px rgba(55, 48, 163, 0.08);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #e0e7ff;
+    }
+
+    .btn-danger {
+      background: #fff1f2;
+      color: #be123c;
+      box-shadow: 0 8px 16px rgba(190, 18, 60, 0.08);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: #ffe4e6;
+    }
+
+    .btn-primary {
+      margin-top: 26px;
+      width: 100%;
+      padding: 17px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed 55%, #ec4899);
+      color: white;
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      box-shadow: 0 18px 38px rgba(37, 99, 235, 0.34);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #1d4ed8, #6d28d9 55%, #db2777);
+      box-shadow: 0 22px 48px rgba(37, 99, 235, 0.42);
+    }
+
+    .status {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      display: none;
+      line-height: 1.4;
+      font-weight: 700;
+    }
+
+    .status.info {
+      display: block;
+      background: #eff6ff;
+      color: #1e40af;
+    }
+
+    .status.error {
+      display: block;
+      background: #fff1f2;
+      color: #be123c;
+    }
+
+    .status.success {
+      display: block;
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    .empty-message {
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(249, 250, 251, 0.9);
+      color: #6b7280;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .note {
+      margin-top: 20px;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #6b7280;
+    }
+
+    @media (max-width: 768px) {
+      .page-wrapper {
+        -webkit-box-align: start;
+            -ms-flex-align: start;
+                align-items: flex-start;
+      }
+
+      .container {
+        margin: 10px auto;
+        padding: 24px;
+        border-radius: 24px;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      p {
+        font-size: 16px;
+      }
+
+      .privacy-highlight {
+        border-radius: 16px;
+      }
+
+      .upload-box {
+        padding: 26px 16px;
+      }
+
+      .pdf-item {
+        -webkit-box-align: stretch;
+            -ms-flex-align: stretch;
+                align-items: stretch;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+      }
+
+      .actions {
+        width: 100%;
+        -webkit-box-pack: start;
+            -ms-flex-pack: start;
+                justify-content: flex-start;
+      }
+
+      .file-name {
+        max-width: calc(100vw - 120px);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page-wrapper {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 18px;
+        border-radius: 20px;
+      }
+
+      h1 {
+        font-size: 29px;
+        letter-spacing: -0.8px;
+      }
+
+      h1:after {
+        width: 70px;
+        height: 5px;
+      }
+
+      body {
+        font-size: 15px;
+      }
+
+      .privacy-highlight {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        width: 100%;
+        -webkit-box-align: start;
+            -ms-flex-align: start;
+                align-items: flex-start;
+      }
+
+      .pdf-info {
+        width: 100%;
+      }
+
+      .file-name {
+        max-width: calc(100vw - 112px);
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
+
+      .actions button {
+        width: 100%;
+        min-height: 42px;
+      }
+
+      .btn-primary {
+        min-height: 52px;
+      }
+    }
+
+    @media (max-width: 340px) {
+      .actions {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <div class="container">
+    <h1>Unisci file PDF</h1>
+    <div class="privacy-highlight">
+      I PDF vengono elaborati sul tuo computer, restano privati e non vengono caricati su server.
+    </div>
+
+    <div class="upload-box">
+      <strong>Seleziona i PDF da unire</strong><br />
+      <input type="file" id="pdfInput" accept="application/pdf" multiple />
+      <div id="fileInputLabel" class="file-input-label">Nessun file selezionato</div>
+    </div>
+
+    <div class="pdf-list" id="pdfList"></div>
+
+    <button class="btn-primary" id="mergeButton" onclick="mergePDFs()" disabled>
+      Unisci PDF
+    </button>
+
+    <div id="status" class="status"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+
+  <script>
+    let selectedFiles = [];
+
+    const pdfInput = document.getElementById('pdfInput');
+    const pdfList = document.getElementById('pdfList');
+    const mergeButton = document.getElementById('mergeButton');
+    const statusBox = document.getElementById('status');
+    const fileInputLabel = document.getElementById('fileInputLabel');
+
+    pdfInput.addEventListener('change', function () {
+      const files = Array.from(this.files);
+
+      const pdfFiles = files.filter(file => file.type === 'application/pdf');
+
+      if (pdfFiles.length !== files.length) {
+        showStatus('Alcuni file sono stati ignorati perché non sono PDF.', 'error');
+      } else {
+        clearStatus();
+      }
+
+      /*
+        Aggiungo i nuovi PDF a quelli già presenti,
+        invece di sostituire l'elenco.
+        In questo modo è possibile caricare i file anche uno per volta.
+      */
+      selectedFiles = selectedFiles.concat(pdfFiles);
+
+      /*
+        Resetto il campo file nativo: così è possibile selezionare
+        nuovamente anche lo stesso file in un secondo momento.
+        L'elenco visibile viene gestito dalla variabile selectedFiles.
+      */
+      pdfInput.value = '';
+
+      renderFileList();
+    });
+
+    function renderFileList() {
+      pdfList.innerHTML = '';
+
+      updateFileInputLabel();
+
+      if (selectedFiles.length === 0) {
+        pdfList.innerHTML = '<div class="empty-message">Nessun PDF selezionato.</div>';
+        mergeButton.disabled = true;
+        return;
+      }
+
+      selectedFiles.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'pdf-item';
+
+        item.innerHTML = `
+          <div class="pdf-info">
+            <span class="position">${index + 1}</span>
+            <div class="file-details">
+              <div class="file-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</div>
+              <div class="file-size">${formatFileSize(file.size)}</div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-secondary" onclick="moveFile(${index}, -1)" ${index === 0 ? 'disabled' : ''}>Su</button>
+            <button class="btn-secondary" onclick="moveFile(${index}, 1)" ${index === selectedFiles.length - 1 ? 'disabled' : ''}>Giù</button>
+            <button class="btn-secondary" onclick="moveFileToTop(${index})" ${index === 0 ? 'disabled' : ''}>Primo</button>
+            <button class="btn-secondary" onclick="moveFileToBottom(${index})" ${index === selectedFiles.length - 1 ? 'disabled' : ''}>Ultimo</button>
+            <button class="btn-danger" onclick="removeFile(${index})">Rimuovi</button>
+          </div>
+        `;
+
+        pdfList.appendChild(item);
+      });
+
+      mergeButton.disabled = selectedFiles.length < 2;
+    }
+
+    function moveFile(index, direction) {
+      const newIndex = index + direction;
+
+      if (newIndex < 0 || newIndex >= selectedFiles.length) {
+        return;
+      }
+
+      const temp = selectedFiles[index];
+      selectedFiles[index] = selectedFiles[newIndex];
+      selectedFiles[newIndex] = temp;
+
+      renderFileList();
+    }
+
+    function moveFileToTop(index) {
+      if (index <= 0) return;
+
+      const file = selectedFiles.splice(index, 1)[0];
+      selectedFiles.unshift(file);
+      renderFileList();
+    }
+
+    function moveFileToBottom(index) {
+      if (index >= selectedFiles.length - 1) return;
+
+      const file = selectedFiles.splice(index, 1)[0];
+      selectedFiles.push(file);
+      renderFileList();
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      renderFileList();
+      clearStatus();
+    }
+
+    async function mergePDFs() {
+      if (selectedFiles.length < 2) {
+        showStatus('Seleziona almeno due file PDF.', 'error');
+        return;
+      }
+
+      mergeButton.disabled = true;
+      showStatus('Unione dei PDF in corso...', 'info');
+
+      try {
+        const { PDFDocument } = PDFLib;
+        const mergedPdf = await PDFDocument.create();
+
+        for (const file of selectedFiles) {
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await PDFDocument.load(arrayBuffer);
+
+          const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+          copiedPages.forEach(page => mergedPdf.addPage(page));
+        }
+
+        const mergedPdfBytes = await mergedPdf.save();
+
+        const blob = new Blob([mergedPdfBytes], {
+          type: 'application/pdf'
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pdf-unito.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showStatus('PDF unito creato correttamente.', 'success');
+      } catch (error) {
+        console.error(error);
+        showStatus('Errore durante l\'unione dei PDF. Verifica che i file non siano protetti da password o danneggiati.', 'error');
+      } finally {
+        mergeButton.disabled = selectedFiles.length < 2;
+      }
+    }
+
+    function updateFileInputLabel() {
+      if (selectedFiles.length === 0) {
+        fileInputLabel.textContent = 'Nessun file selezionato';
+        return;
+      }
+
+      if (selectedFiles.length === 1) {
+        fileInputLabel.textContent = '1 file selezionato: ' + selectedFiles[0].name;
+        return;
+      }
+
+      fileInputLabel.textContent = selectedFiles.length + ' file selezionati';
+    }
+
+    function showStatus(message, type) {
+      statusBox.textContent = message;
+      statusBox.className = 'status ' + type;
+    }
+
+    function clearStatus() {
+      statusBox.textContent = '';
+      statusBox.className = 'status';
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    renderFileList();
+  </script>
+</body>
+</html>
